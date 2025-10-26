@@ -89,24 +89,33 @@ def clean_and_prepare_dataset(base_dir, val_split_count=80):
     # --- 3. Create the validation split ---
     print("\n--- Step 3: Creating a new validation split ---")
     all_original_images = glob.glob(os.path.join(images_dir, '*.jpg'))
-    
-    # Group images by their base name (e.g., dehw_train_00520)
+    all_augmented_images = glob.glob(os.path.join(augmented_dir, '*_augmented.png'))
+    all_gts = glob.glob(os.path.join(gts_dir, '*.png'))
+
+    # Get base names for each file type
+    original_basenames = {os.path.basename(p).replace('.jpg', '') for p in all_original_images}
+    augmented_basenames = {os.path.basename(p).replace('_augmented.png', '') for p in all_augmented_images}
+    gts_basenames = {os.path.basename(p).replace('.png', '') for p in all_gts}
+
+    # Find the intersection of all three sets to get complete image groups
+    complete_basenames = original_basenames & augmented_basenames & gts_basenames
+    print(f"Found {len(complete_basenames)} complete image groups (original, augmented, and gt).")
+
+    if len(complete_basenames) < val_split_count:
+        val_split_count = len(complete_basenames)
+        print(f"Warning: Not enough complete image groups. Validation set size adjusted to {val_split_count}.")
+
+    # Group complete image paths by their base name
     image_groups = {}
-    for img_path in all_original_images:
-        base_name = os.path.basename(img_path).replace('.jpg', '')
-        image_groups[base_name] = {'original': img_path}
-        augmented_path = os.path.join(augmented_dir, f'{base_name}_augmented.png')
-        if os.path.exists(augmented_path):
-            image_groups[base_name]['augmented'] = augmented_path
+    for base_name in complete_basenames:
+        image_groups[base_name] = {
+            'original': os.path.join(images_dir, f'{base_name}.jpg'),
+            'augmented': os.path.join(augmented_dir, f'{base_name}_augmented.png')
+        }
 
-    if len(image_groups) < val_split_count:
-        val_split_count = len(image_groups)
-        print(f"Warning: Not enough image groups. Validation set size adjusted to {val_split_count}.")
-
-    # Randomly select groups for validation
-    group_names = list(image_groups.keys())
-    validation_groups = random.sample(group_names, val_split_count)
-    print(f"Randomly selected {len(validation_groups)} image groups for the new validation set.")
+    # Randomly select groups for validation from the complete list
+    validation_groups = random.sample(list(complete_basenames), val_split_count)
+    print(f"Randomly selected {len(validation_groups)} complete image groups for the new validation set.")
 
     for group_name in tqdm(validation_groups, desc="Moving validation files"):
         group = image_groups[group_name]
