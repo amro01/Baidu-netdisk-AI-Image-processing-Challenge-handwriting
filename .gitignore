@@ -1,0 +1,53 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Model files (too large for git)
+*.pdparams
+*.pth
+*.ckpt
+*.h5
+
+# Dataset and training data
+# 训练准备目录
+tran_add_up/
+# 微调目录
+finetune_dataset/
+logs*/
+ckpts*/
+
+# Mask files
+mask*/
